@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reporte semanal — Mobbex</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/3.31.0/iconfont/tabler-icons.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #ffffff; --bg2: #f7f7f7; --bg3: #efefef;
+      --text: #111; --text2: #555; --text3: #999;
+      --border: #e0e0e0; --border2: #d0d0d0;
+      --radius: 10px; --radius-sm: 6px;
+      --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    body { font-family: var(--font); color: var(--text); background: var(--bg2); min-height: 100vh; }
+    .app { max-width: 880px; margin: 0 auto; padding: 1.5rem 1rem; }
+    header { margin-bottom: 1.5rem; display: flex; align-items: center; gap: 12px; }
+    .logo { background: #0057FF; color: #fff; font-weight: 700; font-size: 13px; padding: 5px 10px; border-radius: var(--radius-sm); letter-spacing: 0.03em; }
+    header h1 { font-size: 17px; font-weight: 600; }
+    header p { font-size: 13px; color: var(--text2); }
+    .tabs { display: flex; gap: 2px; margin-bottom: 1.5rem; background: var(--bg3); border-radius: var(--radius-sm); padding: 3px; width: fit-content; }
+    .tab { padding: 7px 18px; font-size: 13px; cursor: pointer; border: none; background: none; color: var(--text2); border-radius: 5px; font-family: var(--font); transition: all .15s; }
+    .tab.active { background: var(--bg); color: var(--text); font-weight: 500; box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+    .section { display: none; }
+    .section.active { display: block; }
+    .card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; }
+    .card-title { font-size: 12px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 1rem; display: flex; align-items: center; gap: 6px; }
+    .field-group { margin-bottom: .9rem; }
+    .field-group:last-child { margin-bottom: 0; }
+    .field-label { font-size: 13px; color: var(--text2); margin-bottom: 4px; font-weight: 500; }
+    .field-hint { font-size: 11px; color: var(--text3); margin-top: 3px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: .9rem; }
+    select, input[type=text], textarea {
+      width: 100%; font-size: 14px; font-family: var(--font);
+      border: 1px solid var(--border2); border-radius: var(--radius-sm);
+      padding: 8px 10px; background: var(--bg); color: var(--text);
+      transition: border-color .15s;
+    }
+    select:focus, input:focus, textarea:focus { outline: none; border-color: #0057FF; }
+    textarea { resize: vertical; min-height: 72px; }
+    .btn { padding: 8px 18px; border-radius: var(--radius-sm); font-size: 14px; cursor: pointer; border: 1px solid var(--border2); background: var(--bg); color: var(--text); font-family: var(--font); transition: all .15s; }
+    .btn:hover { background: var(--bg3); }
+    .btn-primary { background: #0057FF; color: #fff; border-color: #0057FF; font-weight: 500; }
+    .btn-primary:hover { background: #0048d6; }
+    .btn-primary:disabled { opacity: .6; cursor: not-allowed; }
+    .btn-sm { padding: 4px 12px; font-size: 12px; }
+    .btn-danger { color: #a32d2d; border-color: #f5c0c0; }
+    .btn-danger:hover { background: #fff0f0; }
+    .client-block { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 1rem; margin-bottom: 8px; position: relative; }
+    .client-block .remove-btn { position: absolute; top: 8px; right: 8px; }
+    .status-badge { display: inline-flex; align-items: center; font-size: 12px; padding: 3px 10px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+    .s-prospecto { background: #f0f0f0; color: #555; }
+    .s-negociacion { background: #FFF3E0; color: #7c4400; }
+    .s-alta { background: #E3F2FD; color: #0c447c; }
+    .s-activado { background: #E8F5E9; color: #1b5e20; }
+    .s-cierre { background: #EDE7F6; color: #311b92; }
+    .s-perdido { background: #FFEBEE; color: #7f0000; }
+    .s-sin-novedad { background: #f0f0f0; color: #555; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+    .av-0 { background: #BBDEFB; color: #0d47a1; }
+    .av-1 { background: #C8E6C9; color: #1b5e20; }
+    .av-2 { background: #FCE4EC; color: #880e4f; }
+    .av-3 { background: #FFF9C4; color: #f57f17; }
+    .client-row { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1.6fr; gap: 8px; align-items: start; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+    .client-row:last-child { border-bottom: none; }
+    .client-row.header { font-size: 11px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; padding-bottom: 6px; }
+    .change-up { color: #2e7d32; font-weight: 600; }
+    .change-down { color: #c62828; font-weight: 600; }
+    .change-same { color: var(--text3); }
+    .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+    .metric { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }
+    .metric-label { font-size: 11px; color: var(--text2); margin-bottom: 4px; font-weight: 500; text-transform: uppercase; letter-spacing: .04em; }
+    .metric-val { font-size: 26px; font-weight: 700; }
+    .metric-val.alert { color: #c62828; }
+    .week-selector { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; }
+    .week-selector select { width: auto; }
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--text3); font-size: 14px; }
+    .empty-state i { font-size: 36px; display: block; margin-bottom: 10px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1b5e20; color: #fff; padding: 12px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 500; box-shadow: 0 4px 16px rgba(0,0,0,.15); z-index: 999; display: none; }
+    .toast.error { background: #b71c1c; }
+    .tag-warning { background: #FFF3E0; color: #7c4400; font-size: 12px; padding: 5px 12px; border-radius: 99px; display: inline-block; max-width: 100%; }
+    .tag-purple { background: #EDE7F6; color: #311b92; font-size: 12px; padding: 5px 12px; border-radius: 99px; display: inline-block; max-width: 100%; }
+    .dash-section-title { font-size: 11px; font-weight: 600; color: var(--text2); text-transform: uppercase; letter-spacing: .06em; margin: 14px 0 6px; }
+    .notes-text { font-size: 12px; color: var(--text2); margin-top: 2px; }
+    .gap-alert { background: #FFEBEE; color: #7f0000; border-radius: var(--radius-sm); padding: 8px 12px; font-size: 12px; margin-top: 10px; border: 1px solid #ffcdd2; }
+    .divider { border: none; border-top: 1px solid var(--border); margin: 12px 0; }
+    .loading { text-align: center; padding: 2rem; color: var(--text3); font-size: 14px; }
+    @media (max-width: 600px) {
+      .field-row { grid-template-columns: 1fr; }
+      .client-row { grid-template-columns: 1fr 1fr; }
+      .client-row .col-prev, .client-row .col-next { display: none; }
+      .client-row.header .col-prev, .client-row.header .col-next { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:2px;">
+        <span class="logo">MOBBEX</span>
+        <h1>Reporte semanal hunters</h1>
+      </div>
+      <p id="current-week-label" style="font-size:13px; color:var(--text2);"></p>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('carga')"><i class="ti ti-edit"></i> Cargar reporte</button>
+    <button class="tab" onclick="switchTab('dashboard')"><i class="ti ti-chart-bar"></i> Dashboard</button>
+  </div>
+
+  <!-- CARGA -->
+  <div class="section active" id="sec-carga">
+    <div class="card">
+      <div class="field-row" style="margin-bottom:0;">
+        <div class="field-group" style="margin-bottom:0;">
+          <div class="field-label">Tu nombre</div>
+          <select id="hunter-name">
+            <option value="">Seleccioná tu nombre</option>
+            <option>Alfredo</option><option>Emanuel</option>
+            <option>Carolina</option><option>Ornella</option>
+          </select>
+        </div>
+        <div class="field-group" style="margin-bottom:0;">
+          <div class="field-label">Semana</div>
+          <select id="report-week"></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-telescope"></i> 1. Prospección</div>
+      <div class="field-group">
+        <div class="field-label">Reuniones realizadas (con nombre de comercio)</div>
+        <textarea id="meetings" placeholder="Ej: Lunes - Farmacia Del Centro (interesados en QR). Miércoles - Ferretería Sur..."></textarea>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Nuevos prospectos contactados</div>
+        <textarea id="new-prospects" placeholder="Ej: Contacté 5 comercios nuevos: Zapatería Norte, Pizzería Roma..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-funnel"></i> 2. Pipeline</div>
+      <div class="field-hint" style="margin-bottom:12px; font-size:12px; color:var(--text2);">Cargá cada comercio con su estado. Los cierres y activaciones se cuentan automáticamente.</div>
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+        <div class="field-label" style="margin:0;">Comercios</div>
+        <button class="btn btn-sm" onclick="addClient()"><i class="ti ti-plus"></i> Agregar</button>
+      </div>
+      <div id="clients-container"></div>
+      <hr class="divider">
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field-label">Alta sin activar aún</div>
+        <textarea id="alta-no-activa" placeholder="Ej: Librería Mendoza (alta hace 10 días, no responde)..."></textarea>
+        <div class="field-hint">Comercios que completaron el alta pero todavía no hicieron su primera transacción.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-message-x"></i> 3. Objeciones</div>
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field-label">Principales objeciones que aparecieron</div>
+        <textarea id="objections" placeholder="Ej: Precio vs. Mercado Pago (3 casos). No ven diferencia con sistema actual..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-ban"></i> 4. Bloqueos</div>
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field-label">Qué te frenó esta semana</div>
+        <textarea id="blockers" placeholder="Ej: No pude hablar con el decisor de Z. Falta de material para rubro gastronómico..."></textarea>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title"><i class="ti ti-lifebuoy"></i> 5. Soporte necesario</div>
+      <div class="field-group" style="margin-bottom:0;">
+        <div class="field-label">¿Qué necesitás de tu líder o del equipo para avanzar?</div>
+        <textarea id="support" placeholder="Ej: Excepción de precio para cliente Y. Demo técnica para rubro Z. Contacto en Empresa X..."></textarea>
+        <div class="field-hint">Pedidos concretos de ayuda — diferente a los bloqueos.</div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; margin-top:0.5rem;">
+      <button class="btn btn-primary" id="save-btn" onclick="saveReport()"><i class="ti ti-device-floppy"></i> Guardar reporte</button>
+      <button class="btn" onclick="switchTab('dashboard')">Ver dashboard →</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div class="section" id="sec-dashboard">
+    <div class="week-selector">
+      <span style="font-size:13px; color:var(--text2);">Ver semana:</span>
+      <select id="dash-week-select" onchange="loadDashboard()"></select>
+      <button class="btn btn-sm" onclick="loadDashboard()" style="margin-left:4px;"><i class="ti ti-refresh"></i></button>
+    </div>
+    <div class="metric-grid" id="metrics"></div>
+    <div id="dash-content"><div class="loading"><i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;"></i>Cargando...</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'https://auanwtpdiaicodoumyys.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_NtrAbRSBpnaN1OYAoKT_IA_WjoXKruO';
+
+const STATUSES = ['Prospecto','Negociación','Alta','Activado','Cierre','Perdido','Sin novedad'];
+const STATUS_CLASS = {Prospecto:'s-prospecto',Negociación:'s-negociacion',Alta:'s-alta',Activado:'s-activado',Cierre:'s-cierre',Perdido:'s-perdido','Sin novedad':'s-sin-novedad'};
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const YEAR = new Date().getFullYear();
+let clientCount = 0;
+let WEEK_OPTIONS = [];
+
+// ── Supabase helpers ──────────────────────────────────────────────
+async function sbFetch(path, opts = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...(opts.headers||{}) },
+    ...opts
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  return res.status === 204 ? null : res.json();
+}
+
+async function getReporte(hunter, semana) {
+  const data = await sbFetch(`/rest/v1/reportes?hunter=eq.${encodeURIComponent(hunter)}&semana=eq.${encodeURIComponent(semana)}&select=*`);
+  return data?.[0] || null;
+}
+
+async function getReportesBySemana(semana) {
+  return sbFetch(`/rest/v1/reportes?semana=eq.${encodeURIComponent(semana)}&select=*`);
+}
+
+async function upsertReporte(payload) {
+  return sbFetch('/rest/v1/reportes', {
+    method: 'POST',
+    headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
+    body: JSON.stringify(payload)
+  });
+}
+
+// ── Semanas ───────────────────────────────────────────────────────
+function buildWeekOptions(year) {
+  const options = [];
+  const d = new Date(year, 0, 1);
+  while (d.getDay() !== 1) d.setDate(d.getDate() + 1);
+  while (d.getFullYear() <= year) {
+    const month = d.getMonth();
+    const firstMonday = new Date(d.getFullYear(), month, 1);
+    while (firstMonday.getDay() !== 1) firstMonday.setDate(firstMonday.getDate() + 1);
+    const weekInMonth = Math.round((d - firstMonday) / (7 * 86400000)) + 1;
+    const key = year + '-' + MESES[month] + '-' + weekInMonth;
+    options.push({ key, label: MESES[month] + ' ' + weekInMonth, mondayStr: d.toISOString().slice(0,10), month });
+    d.setDate(d.getDate() + 7);
+    if (d.getFullYear() > year) break;
+  }
+  return options;
+}
+
+function getCurrentWeekKey() {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const day = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + (day===0 ? -6 : 1-day));
+  const mondayStr = monday.toISOString().slice(0,10);
+  return WEEK_OPTIONS.find(o => o.mondayStr === mondayStr)?.key || WEEK_OPTIONS[WEEK_OPTIONS.length-1].key;
+}
+
+function getPrevWeekKey(key) {
+  const idx = WEEK_OPTIONS.findIndex(o => o.key === key);
+  return idx > 0 ? WEEK_OPTIONS[idx-1].key : null;
+}
+
+function populateWeekSelect(selectId, selectedKey) {
+  const sel = document.getElementById(selectId);
+  sel.innerHTML = '';
+  let lastMonth = -1;
+  WEEK_OPTIONS.forEach(o => {
+    if (o.month !== lastMonth) {
+      const og = document.createElement('optgroup');
+      og.label = MESES[o.month] + ' ' + YEAR;
+      sel.appendChild(og);
+      lastMonth = o.month;
+    }
+    const opt = document.createElement('option');
+    opt.value = o.key; opt.textContent = o.label;
+    if (o.key === selectedKey) opt.selected = true;
+    sel.lastChild.appendChild(opt);
+  });
+}
+
+// ── Cliente rows ──────────────────────────────────────────────────
+function addClient(data) {
+  const id = 'c' + (++clientCount);
+  const div = document.createElement('div');
+  div.className = 'client-block'; div.id = id;
+  div.innerHTML = `
+    <button class="btn btn-sm btn-danger remove-btn" onclick="document.getElementById('${id}').remove()"><i class="ti ti-x"></i></button>
+    <div class="field-row" style="margin-bottom:8px;">
+      <div><div class="field-label">Nombre del comercio</div><input type="text" class="c-name" placeholder="Empresa / contacto" value="${data?.name||''}"/></div>
+      <div><div class="field-label">Estado</div><select class="c-status">${STATUSES.map(s=>`<option${data?.status===s?' selected':''}>${s}</option>`).join('')}</select></div>
+    </div>
+    <div class="field-row" style="margin-bottom:0;">
+      <div><div class="field-label">Notas / estado actual</div><input type="text" class="c-notes" placeholder="Qué pasó esta semana" value="${data?.notes||''}"/></div>
+      <div><div class="field-label">Próximo paso concreto</div><input type="text" class="c-next" placeholder="Qué vas a hacer la semana que viene" value="${data?.next||''}"/></div>
+    </div>`;
+  document.getElementById('clients-container').appendChild(div);
+}
+
+// ── Guardar ───────────────────────────────────────────────────────
+async function saveReport() {
+  const hunter = document.getElementById('hunter-name').value;
+  const semana = document.getElementById('report-week').value;
+  if (!hunter) { showToast('Seleccioná tu nombre', true); return; }
+
+  const clients = [];
+  document.querySelectorAll('.client-block').forEach(b => {
+    const name = b.querySelector('.c-name').value.trim();
+    if (name) clients.push({ name, status: b.querySelector('.c-status').value, notes: b.querySelector('.c-notes').value.trim(), next: b.querySelector('.c-next').value.trim() });
+  });
+
+  const btn = document.getElementById('save-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader"></i> Guardando...';
+
+  try {
+    await upsertReporte({
+      hunter, semana, clients,
+      meetings: document.getElementById('meetings').value.trim(),
+      new_prospects: document.getElementById('new-prospects').value.trim(),
+      alta_no_activa: document.getElementById('alta-no-activa').value.trim(),
+      objections: document.getElementById('objections').value.trim(),
+      blockers: document.getElementById('blockers').value.trim(),
+      support: document.getElementById('support').value.trim(),
+      saved_at: new Date().toISOString()
+    });
+    showToast('✓ Reporte guardado correctamente');
+  } catch(e) {
+    showToast('Error al guardar. Revisá la conexión.', true);
+    console.error(e);
+  } finally {
+    btn.disabled = false; btn.innerHTML = '<i class="ti ti-device-floppy"></i> Guardar reporte';
+  }
+}
+
+// ── Dashboard ─────────────────────────────────────────────────────
+async function loadDashboard() {
+  const sel = document.getElementById('dash-week-select');
+  const selectedKey = sel.value || getCurrentWeekKey();
+  populateWeekSelect('dash-week-select', selectedKey);
+
+  document.getElementById('dash-content').innerHTML = '<div class="loading"><i class="ti ti-loader" style="font-size:24px;display:block;margin-bottom:8px;"></i>Cargando reportes...</div>';
+  document.getElementById('metrics').innerHTML = '';
+
+  try {
+    const [weekRows, prevRows] = await Promise.all([
+      getReportesBySemana(selectedKey),
+      getPrevWeekKey(selectedKey) ? getReportesBySemana(getPrevWeekKey(selectedKey)) : Promise.resolve([])
+    ]);
+
+    const prevMap = {};
+    (prevRows||[]).forEach(r => prevMap[r.hunter] = r);
+
+    let total=0, activated=0, cierres=0, gapCount=0;
+    (weekRows||[]).forEach(r => {
+      total += r.clients?.length||0;
+      r.clients?.forEach(c => { if(c.status==='Activado') activated++; if(c.status==='Cierre') cierres++; });
+      if(r.alta_no_activa) gapCount++;
+    });
+
+    const weekLabel = WEEK_OPTIONS.find(o=>o.key===selectedKey)?.label||selectedKey;
+
+    document.getElementById('metrics').innerHTML = `
+      <div class="metric"><div class="metric-label">En pipeline</div><div class="metric-val">${total}</div></div>
+      <div class="metric"><div class="metric-label">Hunters activos</div><div class="metric-val">${(weekRows||[]).length}</div></div>
+      <div class="metric"><div class="metric-label">Activados</div><div class="metric-val">${activated}</div></div>
+      <div class="metric"><div class="metric-label">Cierres</div><div class="metric-val">${cierres}</div></div>
+      <div class="metric"><div class="metric-label">Alta sin activar</div><div class="metric-val ${gapCount>0?'alert':''}">${gapCount}</div></div>`;
+
+    if (!(weekRows||[]).length) {
+      document.getElementById('dash-content').innerHTML = '<div class="empty-state"><i class="ti ti-inbox"></i>Sin reportes para esta semana</div>';
+      return;
+    }
+
+    document.getElementById('dash-content').innerHTML = (weekRows||[]).map((r, idx) => {
+      const avClass = 'av-' + Math.min(idx, 3);
+      const prev = prevMap[r.hunter];
+      let html = `<div class="card" style="margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div class="avatar ${avClass}">${r.hunter.slice(0,2).toUpperCase()}</div>
+          <div><p style="font-weight:600;font-size:15px;">${r.hunter}</p><p style="font-size:12px;color:var(--text2);">${weekLabel} · ${YEAR}</p></div>
+        </div>`;
+
+      if (r.meetings || r.new_prospects) {
+        html += `<div style="padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div class="dash-section-title"><i class="ti ti-telescope"></i> Prospección</div>`;
+        if (r.meetings) html += `<p style="font-size:13px;margin-bottom:6px;"><span style="color:var(--text2);font-size:12px;">Reuniones: </span>${r.meetings}</p>`;
+        if (r.new_prospects) html += `<p style="font-size:13px;"><span style="color:var(--text2);font-size:12px;">Nuevos prospectos: </span>${r.new_prospects}</p>`;
+        html += `</div>`;
+      }
+
+      if (r.clients?.length) {
+        html += `<div style="padding-bottom:12px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+          <div class="dash-section-title"><i class="ti ti-funnel"></i> Pipeline</div>
+          <div class="client-row header"><span>Comercio</span><span>Estado</span><span class="col-prev">Semana anterior</span><span class="col-next">Próximo paso</span></div>`;
+        r.clients.forEach(c => {
+          const prevClient = prev?.clients?.find(pc => pc.name.toLowerCase()===c.name.toLowerCase());
+          let prevCell = '<span style="font-size:11px;color:var(--text3);">nuevo</span>';
+          if (prevClient) {
+            const changed = prevClient.status !== c.status;
+            const arrow = changed ? (c.status==='Perdido'?'↓':'↑') : '→';
+            const cls = changed ? (c.status==='Perdido'?'change-down':'change-up') : 'change-same';
+            prevCell = `<span class="${cls}">${arrow}</span> <span class="status-badge ${STATUS_CLASS[prevClient.status]||''}">${prevClient.status}</span>`;
+          }
+          html += `<div class="client-row">
+            <span style="font-weight:500;">${c.name}${c.notes?`<br><span class="notes-text">${c.notes}</span>`:''}</span>
+            <span><span class="status-badge ${STATUS_CLASS[c.status]||''}">${c.status}</span></span>
+            <span class="col-prev">${prevCell}</span>
+            <span class="col-next notes-text">${c.next||'—'}</span>
+          </div>`;
+        });
+        if (r.alta_no_activa) html += `<div class="gap-alert"><i class="ti ti-alert-triangle" style="font-size:11px;"></i> <strong>Alta sin activar:</strong> ${r.alta_no_activa}</div>`;
+        html += `</div>`;
+      }
+
+      if (r.objections || r.blockers || r.support) {
+        html += `<div>`;
+        if (r.objections) html += `<div style="margin-bottom:10px;"><div class="dash-section-title"><i class="ti ti-message-x"></i> Objeciones</div><span class="tag-warning">${r.objections}</span></div>`;
+        if (r.blockers) html += `<div style="margin-bottom:10px;"><div class="dash-section-title"><i class="ti ti-ban"></i> Bloqueos</div><span class="tag-warning">${r.blockers}</span></div>`;
+        if (r.support) html += `<div><div class="dash-section-title"><i class="ti ti-lifebuoy"></i> Soporte necesario</div><span class="tag-purple">${r.support}</span></div>`;
+        html += `</div>`;
+      }
+
+      return html + '</div>';
+    }).join('');
+
+  } catch(e) {
+    document.getElementById('dash-content').innerHTML = '<div class="empty-state"><i class="ti ti-wifi-off"></i>Error al cargar. Revisá la conexión.</div>';
+    console.error(e);
+  }
+}
+
+// ── Utils ─────────────────────────────────────────────────────────
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['carga','dashboard'][i]===name));
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('sec-'+name).classList.add('active');
+  if (name==='dashboard') loadDashboard();
+}
+
+function showToast(msg, isError=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast' + (isError?' error':'');
+  t.style.display = 'block';
+  setTimeout(() => t.style.display='none', 3000);
+}
+
+function init() {
+  WEEK_OPTIONS = buildWeekOptions(YEAR);
+  const currentKey = getCurrentWeekKey();
+  populateWeekSelect('report-week', currentKey);
+  populateWeekSelect('dash-week-select', currentKey);
+  document.getElementById('current-week-label').textContent = (WEEK_OPTIONS.find(o=>o.key===currentKey)?.label||'') + ' · ' + YEAR;
+  addClient();
+}
+
+init();
+</script>
+</body>
+</html>
