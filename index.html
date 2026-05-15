@@ -217,9 +217,16 @@ let WEEK_OPTIONS = [];
 
 // ── Supabase helpers ──────────────────────────────────────────────
 async function sbFetch(path, opts = {}) {
+  const { headers: extraHeaders, ...restOpts } = opts;
   const res = await fetch(SUPABASE_URL + path, {
-    headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation', ...(opts.headers||{}) },
-    ...opts
+    ...restOpts,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates,return=representation',
+      ...(extraHeaders || {})
+    }
   });
   if (!res.ok) { const e = await res.text(); throw new Error(e); }
   return res.status === 204 ? null : res.json();
@@ -237,7 +244,6 @@ async function getReportesBySemana(semana) {
 async function upsertReporte(payload) {
   return sbFetch('/rest/v1/reportes', {
     method: 'POST',
-    headers: { 'Prefer': 'resolution=merge-duplicates,return=representation' },
     body: JSON.stringify(payload)
   });
 }
